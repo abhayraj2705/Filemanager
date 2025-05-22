@@ -11,13 +11,13 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: ['https://filemanager-pja8.vercel.app', 'http://localhost:5173'],
+    origin: process.env.NODE_ENV === 'production'
+        ? ['https://filemanager-frontend.onrender.com']
+        : ['http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['Content-Type', 'Authorization'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204
+    exposedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());

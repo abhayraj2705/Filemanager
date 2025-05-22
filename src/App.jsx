@@ -38,17 +38,27 @@ function AppContent() {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        }
+        },
+        withCredentials: true,
+        timeout: 5000 // 5 seconds timeout
       };
 
       const [filesRes, foldersRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/files${currentFolder ? `?folderId=${currentFolder}` : ''}`, axiosConfig),
         axios.get(`${import.meta.env.VITE_API_URL}/api/folders`, axiosConfig)
       ]);
+
+      console.log('Files response:', filesRes.data);
+      console.log('Folders response:', foldersRes.data);
+
       setFiles(filesRes.data);
       setFolders(foldersRes.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching data:', {
+        message: error.message,
+        response: error.response?.data,
+        config: error.config?.url
+      });
     }
   };
 

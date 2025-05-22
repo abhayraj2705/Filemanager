@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: filemanager-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://user2000:zO1uVLxledVSHj7T@cluster0.j0sea.mongodb.net/filemanager?retryWrites=true&w=majority
+      - key: CLOUDINARY_CLOUD_NAME
+        value: daxwhqhso
+      - key: CLOUDINARY_API_KEY
+        value: 639865969828163
+      - key: CLOUDINARY_API_SECRET
+        value: tbcFU5H-j_bT7cmf0EnWqdfDY6A
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: filemanager-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    envVars:
+      - key: VITE_API_URL
+        value: https://filemanager-backend.onrender.com
