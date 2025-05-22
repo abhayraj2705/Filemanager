@@ -14,7 +14,7 @@ const app = express();
 // Enhanced CORS configuration
 app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
-        ? ['https://filemanager-frontend.vercel.app', 'http://localhost:5173']
+        ? ['https://filemanager-pja8.vercel.app', 'http://localhost:5173']
         : 'http://localhost:5173',
     credentials: true
 }));
