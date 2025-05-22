@@ -34,9 +34,16 @@ function AppContent() {
 
   const fetchData = async () => {
     try {
+      const axiosConfig = {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      };
+
       const [filesRes, foldersRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/files${currentFolder ? `?folderId=${currentFolder}` : ''}`),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/folders`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/files${currentFolder ? `?folderId=${currentFolder}` : ''}`, axiosConfig),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/folders`, axiosConfig)
       ]);
       setFiles(filesRes.data);
       setFolders(foldersRes.data);

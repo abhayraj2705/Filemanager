@@ -25,42 +25,45 @@ const FolderTree = ({ folders, currentFolder, setCurrentFolder, onUpdate }) => {
 
   const handleCreateFolder = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/folders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: newFolderName,
-          parentId: currentFolder
-        }),
-        credentials: 'include'
-      });
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/folders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                name: newFolderName,
+                parentId: currentFolder
+            })
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      setNewFolderName('');
-      setIsDialogOpen(false);
-      onUpdate();
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        setNewFolderName('');
+        setIsDialogOpen(false);
+        onUpdate();
     } catch (error) {
-      console.error('Error creating folder:', error);
+        console.error('Error creating folder:', error);
     }
   };
 
   const handleDeleteFolder = async (folderId, event) => {
     event.stopPropagation();
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/folders/${folderId}`, {
-        method: 'DELETE',
-      });
-      if (currentFolder === folderId) {
-        setCurrentFolder(null);
-      }
-      onUpdate();
+        await fetch(`${import.meta.env.VITE_API_URL}/api/folders/${folderId}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        if (currentFolder === folderId) {
+            setCurrentFolder(null);
+        }
+        onUpdate();
     } catch (error) {
-      console.error('Error deleting folder:', error);
+        console.error('Error deleting folder:', error);
     }
   };
 
