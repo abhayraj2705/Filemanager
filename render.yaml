@@ -25,6 +25,7 @@ services:
     startCommand: npm run start
     envVars:
       - key: PORT
-        value: 10001
+        value: 3000
       - key: VITE_API_URL
         value: https://filemanager-backend-ymxd.onrender.com
+    staticPublishPath: dist
