@@ -5,6 +5,7 @@ import connectDB from './config/db.js';
 import fileRoutes from './routes/fileRoutes.js';
 import folderRoutes from './routes/folderRoutes.js';
 import path from 'path';
+import morgan from 'morgan';
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ const app = express();
 // Enhanced CORS configuration
 app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
-        ? ['https://your-frontend-domain.vercel.app']
+        ? ['https://filemanager-frontend.vercel.app', 'http://localhost:5173']
         : 'http://localhost:5173',
     credentials: true
 }));
@@ -33,6 +34,9 @@ app.get('/health', (req, res) => {
 app.use('/api/files', fileRoutes);
 app.use('/api/folders', folderRoutes);
 
+// Logging middleware
+app.use(morgan('combined'));
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
@@ -46,4 +50,13 @@ app.use((err, req, res, next) => {
         message: 'Something broke!',
         error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
     });
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
 });
