@@ -3,8 +3,10 @@ services:
     name: filemanager-backend
     env: node
     buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    startCommand: cd backend && node server.js
     envVars:
+      - key: PORT
+        value: 10000
       - key: MONGODB_URI
         value: mongodb+srv://user2000:zO1uVLxledVSHj7T@cluster0.j0sea.mongodb.net/filemanager?retryWrites=true&w=majority
       - key: CLOUDINARY_CLOUD_NAME
@@ -20,7 +22,9 @@ services:
     name: filemanager-frontend
     env: node
     buildCommand: npm install && npm run build
-    startCommand: npm run preview
+    startCommand: npm run start
     envVars:
+      - key: PORT
+        value: 10001
       - key: VITE_API_URL
-        value: https://filemanager-backend.onrender.com
+        value: https://filemanager-backend-ymxd.onrender.com

@@ -8,11 +8,12 @@ import folderRoutes from './routes/folderRoutes.js';
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 // CORS configuration
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? ['https://filemanager-frontend.onrender.com']
+        ? ['https://filemanager-frontend-he7r.onrender.com']
         : ['http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -72,5 +73,9 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Export the serverless function
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
 export default app;
