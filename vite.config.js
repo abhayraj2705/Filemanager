@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -9,7 +8,11 @@ export default defineConfig({
   },
   preview: {
     port: process.env.PORT || 3000,
-    host: '0.0.0.0'
+    host: '0.0.0.0',
+    allowedHosts: [
+      'filemanager-frontend-he7r.onrender.com',
+      'localhost'
+    ]
   },
   server: {
     port: process.env.PORT || 3000,
