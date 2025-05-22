@@ -19,13 +19,21 @@ const UploadButton = ({ currentFolder, onUploadComplete }) => {
     }
 
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/files/upload`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/files/upload`, {
         method: 'POST',
         body: formData,
+        credentials: 'include'
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Upload failed');
+      }
+
       onUploadComplete();
     } catch (error) {
       console.error('Error uploading file:', error);
+      // You might want to add some user feedback here
     } finally {
       setIsUploading(false);
     }

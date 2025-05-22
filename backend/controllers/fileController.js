@@ -1,5 +1,5 @@
 import File from '../models/File.js';
-import { promises as fs } from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Upload a file
 const uploadFile = async (req, res) => {
@@ -15,10 +15,15 @@ const uploadFile = async (req, res) => {
             path: req.file.path,
             folderId: req.body.folderId || null
         });
+
         await file.save();
         res.status(201).json(file);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error('File upload error:', error);
+        res.status(500).json({ 
+            message: 'Error uploading file',
+            error: error.message 
+        });
     }
 };
 
@@ -29,7 +34,11 @@ const getFiles = async (req, res) => {
         const files = await File.find(query).sort({ createdAt: -1 });
         res.json(files);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching files:', error);
+        res.status(500).json({ 
+            message: 'Error fetching files',
+            error: error.message 
+        });
     }
 };
 
@@ -41,14 +50,22 @@ const deleteFile = async (req, res) => {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        // Delete the physical file
-        await fs.unlink(file.path);
-        // Delete the database entry
+        // Extract public_id from Cloudinary URL
+        const publicId = file.path.split('/').slice(-2).join('/').split('.')[0];
+        
+        // Delete from Cloudinary
+        await cloudinary.uploader.destroy(publicId);
+        
+        // Delete from database
         await File.findByIdAndDelete(req.params.id);
         
         res.json({ message: 'File deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('File deletion error:', error);
+        res.status(500).json({ 
+            message: 'Error deleting file',
+            error: error.message 
+        });
     }
 };
 
