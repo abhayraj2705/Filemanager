@@ -25,7 +25,7 @@ const FolderTree = ({ folders, currentFolder, setCurrentFolder, onUpdate }) => {
 
   const handleCreateFolder = async () => {
     try {
-      await fetch('http://localhost:5000/api/folders', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/folders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,7 +34,13 @@ const FolderTree = ({ folders, currentFolder, setCurrentFolder, onUpdate }) => {
           name: newFolderName,
           parentId: currentFolder
         }),
+        credentials: 'include'
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       setNewFolderName('');
       setIsDialogOpen(false);
       onUpdate();
@@ -46,7 +52,7 @@ const FolderTree = ({ folders, currentFolder, setCurrentFolder, onUpdate }) => {
   const handleDeleteFolder = async (folderId, event) => {
     event.stopPropagation();
     try {
-      await fetch(`http://localhost:5000/api/folders/${folderId}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/folders/${folderId}`, {
         method: 'DELETE',
       });
       if (currentFolder === folderId) {

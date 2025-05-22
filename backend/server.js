@@ -4,59 +4,70 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import fileRoutes from './routes/fileRoutes.js';
 import folderRoutes from './routes/folderRoutes.js';
-import path from 'path';
-import morgan from 'morgan';
 
 dotenv.config();
 
 const app = express();
 
-// Enhanced CORS configuration
+// CORS configuration
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-        ? ['https://filemanager-pja8.vercel.app', 'http://localhost:5173']
-        : 'http://localhost:5173',
-    credentials: true
+    origin: ['https://filemanager-pja8.vercel.app', 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
 
-// Connect to MongoDB Atlas
-connectDB();
+// Initialize database connection
+let isConnected = false;
+const connectToDatabase = async () => {
+    if (isConnected) return;
+    await connectDB();
+    isConnected = true;
+};
+
+// Root route
+app.get('/', async (req, res) => {
+    res.json({ 
+        message: 'File Manager API is running',
+        endpoints: {
+            health: '/api/health',
+            files: '/api/files',
+            folders: '/api/folders'
+        }
+    });
+});
 
 // Health check route
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Server is running' });
+app.get('/api/health', async (req, res) => {
+    try {
+        await connectToDatabase();
+        res.json({ status: 'ok', message: 'Server is running' });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
 });
 
-// Routes
-app.use('/api/files', fileRoutes);
-app.use('/api/folders', folderRoutes);
-
-// Logging middleware
-app.use(morgan('combined'));
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+// Routes with database connection
+app.use('/api/files', async (req, res, next) => {
+    await connectToDatabase();
+    return fileRoutes(req, res, next);
 });
 
-// Error handling middleware
+app.use('/api/folders', async (req, res, next) => {
+    await connectToDatabase();
+    return folderRoutes(req, res, next);
+});
+
+// Error handling
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error(err);
     res.status(500).json({ 
-        message: 'Something broke!',
+        message: 'Something went wrong!',
         error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
     });
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
+// Export the serverless function
+export default app;
