@@ -19,32 +19,41 @@ const storage = new CloudinaryStorage({
     params: {
         folder: 'filemanager',
         resource_type: 'auto',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx'],
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', '*'],
+        transformation: [{ quality: 'auto' }]
     }
 });
 
+// Configure multer with error handling
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+        files: 1
+    }
 }).single('file');
 
-router.post('/upload', (req, res, next) => {
-    upload(req, res, async (err) => {
-        if (err) {
+// Wrap upload middleware in error handler
+const handleUpload = (req, res, next) => {
+    upload(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
             console.error('Multer error:', err);
             return res.status(400).json({
                 message: 'File upload error',
                 error: err.message
             });
+        } else if (err) {
+            console.error('Unknown upload error:', err);
+            return res.status(500).json({
+                message: 'Unknown upload error',
+                error: err.message
+            });
         }
-        try {
-            await uploadFile(req, res);
-        } catch (error) {
-            next(error);
-        }
+        next();
     });
-});
+};
 
+router.post('/upload', handleUpload, uploadFile);
 router.get('/', getFiles);
 router.delete('/:id', deleteFile);
 

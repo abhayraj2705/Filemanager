@@ -10,15 +10,14 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB first
-connectDB().then(() => {
-    console.log('Connected to MongoDB');
-}).catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-});
+// Increase payload size limit
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// CORS configuration
+// Connect to MongoDB first
+await connectDB();
+
+// CORS configuration with error handling
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
         ? ['https://filemanager-frontend-he7r.onrender.com']
@@ -28,24 +27,34 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // Routes
 app.use('/api/folders', folderRoutes);
 app.use('/api/files', fileRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    res.status(500).json({ 
-        message: 'Something went wrong!',
+    console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        path: req.path,
+        method: req.method
+    });
+    
+    res.status(err.status || 500).json({ 
+        message: err.message || 'Something went wrong!',
         error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
     });
 });
 
-app.listen(PORT, () => {
+// Start server only after DB connection
+const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+    console.error('Server error:', error);
+    process.exit(1);
 });
 
 export default app;
