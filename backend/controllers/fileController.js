@@ -8,11 +8,12 @@ const uploadFile = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
+        // Add secure_url instead of path
         const file = new File({
             name: req.file.originalname,
             type: req.file.mimetype,
             size: req.file.size,
-            path: req.file.path,
+            path: req.file.secure_url, // Use secure_url instead of path
             folderId: req.body.folderId || null
         });
 

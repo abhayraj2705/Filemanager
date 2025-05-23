@@ -46,7 +46,11 @@ const FileCard = ({ file, onDelete, viewType = 'grid' }) => {
   };
 
   const handleDownload = () => {
-    window.open(`${import.meta.env.VITE_API_URL}/${file.path}`, '_blank');
+    // Remove the base URL prefix if it exists
+    const downloadUrl = file.path.startsWith('http') 
+        ? file.path 
+        : `${import.meta.env.VITE_API_URL}/${file.path}`;
+    window.open(downloadUrl, '_blank');
   };
 
   const handleDelete = async () => {

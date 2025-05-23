@@ -18,8 +18,12 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'filemanager',
-    resource_type: 'auto', // This allows all file types
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', '*']
+    resource_type: 'auto',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', '*'],
+    transformation: [{ quality: 'auto' }],
+    // Add this to ensure we get secure URLs
+    use_filename: true,
+    unique_filename: true
   }
 });
 
