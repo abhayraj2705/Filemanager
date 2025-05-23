@@ -15,27 +15,29 @@ const UploadButton = ({ currentFolder, onUploadComplete }) => {
     const formData = new FormData();
     formData.append('file', file);
     if (currentFolder) {
-      formData.append('folderId', currentFolder);
+        formData.append('folderId', currentFolder);
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/files/upload`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/files/upload`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Upload failed');
-      }
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Upload failed');
+        }
 
-      onUploadComplete();
+        const data = await response.json();
+        console.log('Upload successful:', data);
+        onUploadComplete();
     } catch (error) {
-      console.error('Error uploading file:', error);
-      // You might want to add some user feedback here
+        console.error('Error uploading file:', error);
+        // Add error handling UI feedback here
     } finally {
-      setIsUploading(false);
+        setIsUploading(false);
     }
   };
 

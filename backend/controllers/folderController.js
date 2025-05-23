@@ -1,142 +1,83 @@
-import Folder from '../models/Folder.js';
 import File from '../models/File.js';
-import { promises as fs } from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 
-// Create a folder
-const createFolder = async (req, res) => {
+const uploadFile = async (req, res) => {
     try {
-        // Check if folder name is provided
-        if (!req.body.name) {
-            return res.status(400).json({ message: 'Folder name is required' });
+        if (!req.file) {
+            console.error('No file received');
+            return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        // Check if folder already exists in the same parent
-        const existingFolder = await Folder.findOne({
-            name: req.body.name,
-            parent: req.body.parentId || null
+        console.log('Processing file:', {
+            name: req.file.originalname,
+            type: req.file.mimetype,
+            size: req.file.size,
+            path: req.file.path,
+            secure_url: req.file.secure_url
         });
 
-        if (existingFolder) {
-            return res.status(400).json({ message: 'Folder already exists' });
-        }
-
-        const folder = new Folder({
-            name: req.body.name,
-            parent: req.body.parentId || null
-        });
-        await folder.save();
-        res.status(201).json(folder);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-// Get all folders
-const getFolders = async (req, res) => {
-    try {
-        const folders = await Folder.find()
-            .populate('parent')
-            .sort({ createdAt: -1 });
-        res.json(folders);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Get folder by ID
-const getFolderById = async (req, res) => {
-    try {
-        const folder = await Folder.findById(req.params.id)
-            .populate('parent');
-        if (!folder) {
-            return res.status(404).json({ message: 'Folder not found' });
-        }
-        res.json(folder);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Delete folder recursively
-const deleteFilesInFolder = async (folderId) => {
-    const files = await File.find({ folderId });
-    for (const file of files) {
-        try {
-            await fs.unlink(file.path);
-            await File.findByIdAndDelete(file._id);
-        } catch (error) {
-            console.error(`Error deleting file ${file.name}:`, error);
-        }
-    }
-};
-
-// Delete folder
-const deleteFolder = async (req, res) => {
-    try {
-        const folder = await Folder.findById(req.params.id);
-        if (!folder) {
-            return res.status(404).json({ message: 'Folder not found' });
-        }
-
-        // Delete all files in the folder
-        await deleteFilesInFolder(req.params.id);
-
-        // Delete subfolders recursively
-        const subFolders = await Folder.find({ parent: req.params.id });
-        for (const subFolder of subFolders) {
-            await deleteFilesInFolder(subFolder._id);
-            await Folder.findByIdAndDelete(subFolder._id);
-        }
-
-        // Finally delete the folder itself
-        await Folder.findByIdAndDelete(req.params.id);
-
-        res.json({ message: 'Folder and its contents deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Update folder
-const updateFolder = async (req, res) => {
-    try {
-        if (!req.body.name) {
-            return res.status(400).json({ message: 'Folder name is required' });
-        }
-
-        // Check if folder with new name already exists
-        const existingFolder = await Folder.findOne({
-            name: req.body.name,
-            parent: req.body.parentId || null,
-            _id: { $ne: req.params.id }
+        const file = new File({
+            name: req.file.originalname,
+            type: req.file.mimetype,
+            size: req.file.size,
+            path: req.file.secure_url || req.file.path, // Use secure_url if available
+            folderId: req.body.folderId || null
         });
 
-        if (existingFolder) {
-            return res.status(400).json({ message: 'Folder name already exists' });
-        }
-
-        const folder = await Folder.findByIdAndUpdate(
-            req.params.id,
-            {
-                name: req.body.name,
-                parent: req.body.parentId || null
-            },
-            { new: true }
-        );
-        if (!folder) {
-            return res.status(404).json({ message: 'Folder not found' });
-        }
-        res.json(folder);
+        const savedFile = await file.save();
+        console.log('File saved to database:', savedFile);
+        
+        res.status(201).json(savedFile);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('File upload error:', error);
+        res.status(500).json({ 
+            message: 'Error uploading file',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
-// Export all functions
-export {
-    createFolder,
-    getFolders,
-    getFolderById,
-    deleteFolder,
-    updateFolder
+// Get all files
+const getFiles = async (req, res) => {
+    try {
+        const query = req.query.folderId ? { folderId: req.query.folderId } : {};
+        const files = await File.find(query).sort({ createdAt: -1 });
+        res.json(files);
+    } catch (error) {
+        console.error('Error fetching files:', error);
+        res.status(500).json({ 
+            message: 'Error fetching files',
+            error: error.message 
+        });
+    }
 };
+
+// Delete a file
+const deleteFile = async (req, res) => {
+    try {
+        const file = await File.findById(req.params.id);
+        if (!file) {
+            return res.status(404).json({ message: 'File not found' });
+        }
+
+        // Extract public_id from Cloudinary URL
+        const publicId = file.path.split('/').slice(-2).join('/').split('.')[0];
+        
+        // Delete from Cloudinary
+        await cloudinary.uploader.destroy(publicId);
+        
+        // Delete from database
+        await File.findByIdAndDelete(req.params.id);
+        
+        res.json({ message: 'File deleted successfully' });
+    } catch (error) {
+        console.error('File deletion error:', error);
+        res.status(500).json({ 
+            message: 'Error deleting file',
+            error: error.message 
+        });
+    }
+};
+
+export { uploadFile, getFiles, deleteFile };

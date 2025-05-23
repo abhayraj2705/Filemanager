@@ -18,32 +18,34 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'filemanager',
+    allowed_formats: ['*'],
     resource_type: 'auto',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', '*'],
-    transformation: [{ quality: 'auto' }],
     // Add this to ensure we get secure URLs
     use_filename: true,
     unique_filename: true
   }
 });
 
-const upload = multer({ 
+// Configure multer with error handling
+const upload = multer({
   storage: storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
-});
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+}).single('file');
 
-// Update error handling for upload route
+// Update the upload route with better error handling
 router.post('/upload', (req, res) => {
-  upload.single('file')(req, res, (err) => {
+  upload(req, res, (err) => {
     if (err) {
-      console.error('Upload error:', err);
-      return res.status(400).json({ 
-        message: 'File upload error', 
-        error: err.message 
+      console.error('Multer upload error:', err);
+      return res.status(400).json({
+        message: 'File upload error',
+        error: err.message
       });
     }
+    
+    // Log the file object for debugging
+    console.log('Uploaded file:', req.file);
+    
     uploadFile(req, res);
   });
 });
