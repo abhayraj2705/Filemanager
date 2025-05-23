@@ -53,16 +53,9 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// Routes with database connection
-app.use('/api/files', async (req, res, next) => {
-    await connectToDatabase();
-    return fileRoutes(req, res, next);
-});
-
-app.use('/api/folders', async (req, res, next) => {
-    await connectToDatabase();
-    return folderRoutes(req, res, next);
-});
+// Update the routes middleware
+app.use('/api/folders', folderRoutes);
+app.use('/api/files', fileRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
