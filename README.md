@@ -1,12 +1,46 @@
-# React + Vite
+# 📁 File Manager Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack File Manager web application built with **React** (frontend) and **Node.js/Express** (backend). Users can upload, organize, and delete files and folders through an intuitive UI. This project was built as part of the Hackosquad React & Node.js Internship Final Round Challenge.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## Expanding the ESLint configuration
+- Upload files via UI (supports multiple file types)
+- Display files in list/grid view with:
+  - Name, Type, Size, Upload Date
+- Create and delete folders
+- Organize files into folders
+- Delete files individually
+- Responsive React frontend
+- RESTful backend APIs for managing files and folders
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🔧 Tech Stack
+
+**Frontend:**  
+- React  
+- CSS 
+
+**Backend:**  
+- Node.js  
+- Express.js  
+- Multer (for handling file uploads)  
+- [MongoDB / JSON storage / Clodinary platform ]
+
+---
+
+## 🌐 Deployment
+
+- **Frontend:** https://filemanager-frontend-he7r.onrender.com/  
+- **Backend:** https://filemanager-backend-ymxd.onrender.com
+
+---
+
+## 📂 Getting Started
+
+### Clone the repository:
+```bash
+git clone https://github.com/your-username/file-manager-app.git
+cd file-manager-app
