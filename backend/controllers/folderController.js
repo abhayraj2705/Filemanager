@@ -4,16 +4,17 @@ import File from '../models/File.js';
 // Create a folder
 export const createFolder = async (req, res) => {
     try {
-        console.log('Create folder request:', req.body);
+        const { name, parentId } = req.body;
+        console.log('Creating folder:', { name, parentId });
 
-        if (!req.body.name) {
-            return res.status(400).json({ message: 'Folder name is required' });
+        if (!name || typeof name !== 'string') {
+            return res.status(400).json({ message: 'Valid folder name is required' });
         }
 
-        // Check if folder already exists in the same parent
+        // Check if folder already exists
         const existingFolder = await Folder.findOne({
-            name: req.body.name,
-            parent: req.body.parentId || null
+            name: name,
+            parent: parentId || null
         });
 
         if (existingFolder) {
@@ -21,8 +22,8 @@ export const createFolder = async (req, res) => {
         }
 
         const folder = new Folder({
-            name: req.body.name,
-            parent: req.body.parentId || null
+            name: name,
+            parent: parentId || null
         });
 
         const savedFolder = await folder.save();
@@ -30,9 +31,9 @@ export const createFolder = async (req, res) => {
         res.status(201).json(savedFolder);
     } catch (error) {
         console.error('Error creating folder:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             message: 'Error creating folder',
-            error: error.message 
+            error: error.message
         });
     }
 };

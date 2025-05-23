@@ -9,10 +9,21 @@ import {
 
 const router = express.Router();
 
-// Ensure all route handlers are defined before using them
-router.route('/')
-    .post(createFolder)
-    .get(getFolders);
+router.post('/', async (req, res, next) => {
+    try {
+        await createFolder(req, res);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/', async (req, res, next) => {
+    try {
+        await getFolders(req, res);
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.route('/:id')
     .get(getFolderById)

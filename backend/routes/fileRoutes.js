@@ -8,46 +8,41 @@ const router = express.Router();
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // Configure Cloudinary Storage
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'filemanager',
-    allowed_formats: ['*'],
-    resource_type: 'auto',
-    // Add this to ensure we get secure URLs
-    use_filename: true,
-    unique_filename: true
-  }
+    cloudinary: cloudinary,
+    params: {
+        folder: 'filemanager',
+        resource_type: 'auto',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx'],
+    }
 });
 
-// Configure multer with error handling
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 }).single('file');
 
-// Update the upload route with better error handling
-router.post('/upload', (req, res) => {
-  upload(req, res, (err) => {
-    if (err) {
-      console.error('Multer upload error:', err);
-      return res.status(400).json({
-        message: 'File upload error',
-        error: err.message
-      });
-    }
-    
-    // Log the file object for debugging
-    console.log('Uploaded file:', req.file);
-    
-    uploadFile(req, res);
-  });
+router.post('/upload', (req, res, next) => {
+    upload(req, res, async (err) => {
+        if (err) {
+            console.error('Multer error:', err);
+            return res.status(400).json({
+                message: 'File upload error',
+                error: err.message
+            });
+        }
+        try {
+            await uploadFile(req, res);
+        } catch (error) {
+            next(error);
+        }
+    });
 });
 
 router.get('/', getFiles);
