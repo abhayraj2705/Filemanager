@@ -35,3 +35,37 @@ export const uploadFile = async (req, res) => {
         });
     }
 };
+
+// Add the missing function exports
+export const getFiles = async (req, res) => {
+    try {
+        const { folderId } = req.query;
+        const query = folderId ? { folderId } : {};
+        const files = await File.find(query).sort({ createdAt: -1 });
+        res.json(files);
+    } catch (error) {
+        console.error('Error fetching files:', error);
+        res.status(500).json({ 
+            message: 'Error fetching files',
+            error: error.message 
+        });
+    }
+};
+
+export const deleteFile = async (req, res) => {
+    try {
+        const file = await File.findById(req.params.id);
+        if (!file) {
+            return res.status(404).json({ message: 'File not found' });
+        }
+
+        await File.findByIdAndDelete(req.params.id);
+        res.json({ message: 'File deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        res.status(500).json({ 
+            message: 'Error deleting file',
+            error: error.message 
+        });
+    }
+};
